@@ -1,0 +1,33 @@
+import torch.nn as nn
+import torch
+
+
+class CUFLoss(nn.Module):
+    def __init__(self, classes=100, smoothing=0.1):
+        super(CUFLoss, self).__init__()
+
+    def forward(self, pred, target):
+        index = torch.argmin(pred, 1)
+        pred = pred.log_softmax(dim=-1)
+        with torch.no_grad():
+            true_dist = torch.zeros_like(pred)
+            true_dist.scatter_(1, index.reshape(-1, 1), 0.1)
+            true_dist.scatter_(1, target.data.unsqueeze(1), 0.9)
+        return torch.mean(torch.sum(-true_dist * pred, dim=-1))
+
+
+class LabelSmoothingLoss(nn.Module):
+    def __init__(self, classes=100, smoothing=0.1, dim=-1):
+        super(LabelSmoothingLoss, self).__init__()
+        self.confidence = 1.0 - smoothing
+        self.smoothing = smoothing
+        self.cls = classes
+        self.dim = dim
+
+    def forward(self, pred, target):
+        pred = pred.log_softmax(dim=self.dim)
+        with torch.no_grad():
+            true_dist = torch.zeros_like(pred)
+            true_dist.fill_(self.smoothing / (self.cls - 1))
+            true_dist.scatter_(1, target.data.unsqueeze(1), self.confidence)
+        return torch.mean(torch.sum(-true_dist * pred, dim=self.dim))
