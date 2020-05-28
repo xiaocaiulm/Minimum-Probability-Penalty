@@ -1,5 +1,6 @@
 import torch
 import torchvision.models as models
+from efficientnet_pytorch import EfficientNet
 
 
 def get_model(opt, num_classes):
@@ -38,6 +39,11 @@ def get_model(opt, num_classes):
         net = models.inception_v3(pretrained=True)
         in_features = net.classifier.in_features
         net.classifier = torch.nn.Linear(
+            in_features=in_features, out_features=num_classes)
+    elif opt.model_name == 'efficientnet':
+        net = EfficientNet.from_pretrained('efficientnet-b5')
+        in_features = net._fc.in_features
+        net._fc = torch.nn.Linear(
             in_features=in_features, out_features=num_classes)
     else:
         raise NotImplementedError
