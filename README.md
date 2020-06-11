@@ -8,13 +8,13 @@
 3. Run the following code to get the reported results:
 #### CUB
 ```bash
-python train.py --model-name=densenet161 --scheduler=cos --lr=0.008 --loss=mpp --smoothing=0.1 -b=16 --image-size=600
+python train.py --model-name=densenet161 --scheduler=cos --lr=0.008 --loss=mpp --smoothing=0.1 -b=16 --image-size=600 --weight-decay=5e-4
 ```
 #### Aircrafts
 ```bash
-python train.py --model-name=densenet161 --lr=0.005 --loss=mpp --smoothing=0.1 -b=4
+python train.py --model-name=densenet161 --lr=0.005 --loss=mpp --smoothing=0.1 -b=4 --weight-decay=5e-4
 ```
 #### Stanford Cars
 ```bash
-python train.py --model-name=densenet161 --lr=0.001 --loss=mpp --smoothing=0.1 -b=4
+python train.py --model-name=densenet161 --lr=0.001 --loss=mpp --smoothing=0.1 -b=4 --weight-decay=5e-4
 ```
