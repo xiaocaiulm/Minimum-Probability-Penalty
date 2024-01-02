@@ -164,7 +164,7 @@ def convert_dogs(data_root):
 
 
 if __name__ == '__main__':
-    convert_bird('E:\\Datasets\\CUB\\CUB_200_2011')
+    convert_bird('/Users/au732864/Documents/Data/CUB_200_2011/CUB_200_2011')
     # convert_car('/home/XXX/Dataset/Fine-grained/Car/devkit')
     # convert_aircraft('/home/XXX/Dataset/Fine-grained/fgvc-aircraft-2013b/data')
     # convert_dog('/home/XXX/Dataset/Fine-grained/dogs')

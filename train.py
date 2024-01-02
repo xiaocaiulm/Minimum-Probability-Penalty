@@ -6,7 +6,6 @@ from utils import get_lr, save_checkpoint
 from trainer import *
 import argparse
 
-
 def main(opt):
     sw_log = 'logs/%s' % opt.dataset
     sw = SummaryWriter(log_dir=sw_log)
@@ -15,9 +14,13 @@ def main(opt):
     train_dataset, train_loader, val_dataset, val_loader = data_loader(opt)
     net = get_model(opt, train_dataset.num_classes)
 
-    torch.cuda.set_device(int(opt.gpu_ids[0]))
-    use_gpu = torch.cuda.is_available() and opt.use_gpu
-    net = net.cuda()
+    print(torch.backends.mps.is_available)
+    print(torch.backends.mps.is_built)
+
+    device = torch.device("mps" if torch.backends.mps.is_available else"cpu")
+    #torch.cuda.set_device(int(opt.gpu_ids[0]))
+    use_gpu = torch.backends.mps.is_available() and opt.use_gpu
+    net = net.to(device)
 
     assert opt.optim in ['sgd', 'adam'], 'optim name not found!'
     if opt.optim == 'sgd':
@@ -27,12 +30,13 @@ def main(opt):
         optimizer = torch.optim.Adam(
             net.parameters(), lr=opt.lr, weight_decay=opt.weight_decay)
 
-    assert opt.scheduler in ['plateau',
-                                'step'], 'scheduler not supported!!!'
+    assert opt.scheduler in ['plateau','cos','step'], 'scheduler not supported!!!'
     if opt.scheduler == 'plateau':
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=3, factor=0.1)
     elif opt.scheduler == 'step':
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
+    elif opt.scheduler == 'cos':
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=opt.epochs)
 
     if opt.loss == 'ce':
         criterion = nn.CrossEntropyLoss()
@@ -40,6 +44,8 @@ def main(opt):
         criterion = LabelSmoothingLoss(train_dataset.num_classes, opt.smoothing)
     elif opt.loss == 'cuf':
         criterion = CUFLoss(train_dataset.num_classes, opt.smoothing)
+    else:
+        raise ValueError(f"Unsupported loss function: {opt.loss}")
     if use_gpu:
         criterion = criterion.cuda()
 
@@ -73,6 +79,7 @@ def main(opt):
                 scheduler.step(val_loss)
             if opt.scheduler == 'step':
                 scheduler.step()
+            
             print("top1:%.3f,\tbest_top1:%.3f"%(prec1,best_prec1))
 
 
